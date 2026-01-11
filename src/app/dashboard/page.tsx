@@ -26,7 +26,6 @@ export default function DashboardPage() {
         const data = await response.json();
         setStats(data);
 
-        // Extract flood types and locations for filters
         if (data.floodTypes) {
           setFloodTypes(data.floodTypes.map((f: { type: string }) => f.type));
         }
@@ -60,7 +59,6 @@ export default function DashboardPage() {
       const data = await response.json();
       setEvents(data.events || []);
 
-      // Update locations for autocomplete
       if (data.events) {
         const uniqueLocations = [...new Set(data.events.map((e: FloodEvent) => e.location).filter(Boolean))] as string[];
         setLocations(prev => [...new Set([...prev, ...uniqueLocations])]);
@@ -98,28 +96,43 @@ export default function DashboardPage() {
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-10 lg:py-14">
         {/* Page Header */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="mb-10 animate-fade-up" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-display font-bold" style={{ color: 'var(--text-primary)' }}>
-                Flood Events Dashboard
+              <p
+                className="text-sm font-bold uppercase tracking-widest mb-3"
+                style={{ color: 'var(--accent-primary)' }}
+              >
+                Dashboard
+              </p>
+              <h1
+                className="text-4xl lg:text-5xl font-display font-bold mb-3"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Flood Events Database
               </h1>
-              <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Comprehensive view of all documented flood events with advanced filtering
+              <p
+                className="text-lg font-medium max-w-xl leading-relaxed"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Explore documented flood events with advanced filtering and detailed insights.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4 flex-shrink-0">
               <div
-                className="px-4 py-2 rounded-lg flex items-center gap-2"
-                style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)' }}
+                className="inline-flex items-center gap-3 px-5 py-3 rounded-full"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
               >
-                <div
-                  className={`w-2 h-2 rounded-full ${eventsLoading ? 'animate-pulse' : ''}`}
-                  style={{ background: eventsLoading ? 'var(--warning)' : 'var(--success)' }}
+                <span
+                  className={`w-3 h-3 rounded-full ${eventsLoading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`}
                 />
-                <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                   {eventsLoading ? 'Loading...' : `${events.length} events`}
                 </span>
               </div>
@@ -128,12 +141,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Overview */}
-        <section className="mb-8">
+        <section className="mb-8 animate-fade-up stagger-1" style={{ opacity: 0, animationFillMode: 'forwards' }}>
           <StatsCards stats={stats} loading={loading} />
         </section>
 
         {/* Filters */}
-        <section className="mb-6">
+        <section className="mb-8 animate-fade-up stagger-2" style={{ opacity: 0, animationFillMode: 'forwards' }}>
           <FilterPanel
             filters={filters}
             onFilterChange={setFilters}
@@ -143,54 +156,42 @@ export default function DashboardPage() {
         </section>
 
         {/* Data Table */}
-        <section className="mb-8">
+        <section className="mb-10 animate-fade-up stagger-3" style={{ opacity: 0, animationFillMode: 'forwards' }}>
           {eventsLoading ? (
-            <div className="card p-12 flex flex-col items-center justify-center gap-4">
-              <div className="relative">
-                <div
-                  className="w-12 h-12 rounded-full animate-spin"
-                  style={{
-                    border: '3px solid var(--bg-tertiary)',
-                    borderTopColor: 'var(--accent-primary)',
-                  }}
-                />
-              </div>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <div className="card p-20 flex flex-col items-center justify-center gap-5">
+              <div
+                className="w-12 h-12 rounded-full animate-spin"
+                style={{
+                  border: '3px solid var(--border-subtle)',
+                  borderTopColor: 'var(--accent-primary)',
+                }}
+              />
+              <p className="text-base font-medium" style={{ color: 'var(--text-tertiary)' }}>
                 Loading flood events...
               </p>
             </div>
           ) : events.length === 0 ? (
-            <div className="card p-12 flex flex-col items-center justify-center gap-4">
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                style={{ background: 'var(--bg-tertiary)' }}
+            <div className="empty-state card py-20">
+              <svg
+                className="empty-state-icon"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
               >
-                <svg
-                  className="w-8 h-8"
-                  style={{ color: 'var(--text-tertiary)' }}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div className="text-center">
-                <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
-                  No events found
-                </p>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-tertiary)' }}>
-                  Try adjusting your filters to see more results
-                </p>
-              </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="empty-state-title">No events found</p>
+              <p className="empty-state-description">
+                Try adjusting your filters to see more results
+              </p>
               <button
                 onClick={() => setFilters({})}
-                className="btn btn-secondary text-sm"
+                className="btn btn-primary mt-6"
               >
                 Clear All Filters
               </button>
@@ -201,11 +202,34 @@ export default function DashboardPage() {
         </section>
 
         {/* Footer Info */}
-        <footer className="text-center py-6 border-t" style={{ borderColor: 'var(--border-primary)' }}>
-          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-            Data sourced from verified news reports and government records.
-            Last database update reflects latest available information.
-          </p>
+        <footer
+          className="py-8 mt-8"
+          style={{ borderTop: '1px solid var(--border-subtle)' }}
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div
+              className="flex items-center gap-4 px-5 py-3 rounded-2xl"
+              style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
+            >
+              <img
+                src="/IIT_Hyderabad_logo.png"
+                alt="IIT Hyderabad"
+                className="h-10 w-auto object-contain"
+              />
+              <div className="h-8 w-px" style={{ background: 'var(--border-subtle)' }} />
+              <div>
+                <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                  IIT Hyderabad
+                </p>
+                <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                  Research Initiative
+                </p>
+              </div>
+            </div>
+            <p className="text-sm font-semibold text-center" style={{ color: 'var(--text-tertiary)' }}>
+              Data sourced from verified news reports and government records
+            </p>
+          </div>
         </footer>
       </main>
 

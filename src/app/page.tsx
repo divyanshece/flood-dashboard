@@ -1,384 +1,436 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Header from '@/components/Header';
-import { DatabaseStats } from '@/types/event';
 
 export default function Home() {
-  const [stats, setStats] = useState<DatabaseStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/stats')
-      .then(res => res.json())
-      .then(data => {
-        setStats(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  const formatDateRange = () => {
-    if (!stats?.dateRange.earliest || !stats?.dateRange.latest) return '2003 - Present';
-    const start = new Date(stats.dateRange.earliest).getFullYear();
-    const end = new Date(stats.dateRange.latest).getFullYear();
-    return `${start} - ${end}`;
-  };
-
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       <Header />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Background Pattern */}
+      <section
+        className="relative min-h-[calc(100vh-80px)] flex flex-col justify-center overflow-hidden"
+        style={{ background: 'var(--bg-secondary)' }}
+      >
+        {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div
-            className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] rounded-full opacity-30"
+            className="absolute top-10 right-[20%] w-[400px] h-[400px] rounded-full animate-float-slow"
             style={{
-              background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-              filter: 'blur(80px)',
+              background: 'radial-gradient(circle, var(--accent-muted) 0%, transparent 70%)',
+              filter: 'blur(60px)',
+              opacity: 0.5,
             }}
           />
           <div
-            className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full opacity-20"
+            className="absolute bottom-10 left-[5%] w-[300px] h-[300px] rounded-full animate-float"
             style={{
-              background: 'radial-gradient(circle, var(--accent-tertiary) 0%, transparent 70%)',
-              filter: 'blur(60px)',
+              background: 'radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%)',
+              filter: 'blur(50px)',
+              animationDelay: '2s',
+            }}
+          />
+
+          {/* Grid pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.02]"
+            style={{
+              backgroundImage: `
+                linear-gradient(var(--text-primary) 1px, transparent 1px),
+                linear-gradient(90deg, var(--text-primary) 1px, transparent 1px)
+              `,
+              backgroundSize: '60px 60px',
             }}
           />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 animate-slide-up" style={{ background: 'var(--bg-tertiary)' }}>
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--success)' }} />
-              <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                Currently tracking <span style={{ color: 'var(--accent-primary)' }}>Hyderabad, India</span>
-              </span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-6 animate-slide-up stagger-1" style={{ color: 'var(--text-primary)' }}>
-              Comprehensive{' '}
-              <span className="text-gradient">Flood Analytics</span>
-              <br />
-              for Urban Resilience
-            </h1>
-
-            {/* Subheadline */}
-            <p className="text-lg sm:text-xl mb-10 max-w-2xl mx-auto animate-slide-up stagger-2" style={{ color: 'var(--text-secondary)' }}>
-              India&apos;s first city-level flood database. Explore over two decades of flood events,
-              patterns, and impacts to support disaster management and urban planning.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up stagger-3">
-              <Link href="/dashboard" className="btn btn-primary text-base px-8 py-3">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Explore Dashboard
-              </Link>
-              <a href="#stats" className="btn btn-secondary text-base px-8 py-3">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Learn More
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section id="stats" className="py-16 lg:py-24" style={{ background: 'var(--bg-secondary)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-display font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-              Database at a Glance
-            </h2>
-            <p style={{ color: 'var(--text-secondary)' }}>
-              Hyderabad flood events from {formatDateRange()}
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="card p-6 animate-pulse">
-                  <div className="h-4 w-24 rounded mb-3" style={{ background: 'var(--bg-tertiary)' }} />
-                  <div className="h-10 w-20 rounded" style={{ background: 'var(--bg-tertiary)' }} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Total Events */}
-              <div className="card p-6 text-center hover:border-[var(--border-accent)] transition-all">
+        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-10 w-full">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            {/* Left Content - 7 columns */}
+            <div className="lg:col-span-7 text-left">
+              {/* IIT Hyderabad Badge */}
+              <div className="animate-fade-up" style={{ opacity: 0, animationFillMode: 'forwards' }}>
                 <div
-                  className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%)' }}
+                  className="inline-flex items-center gap-3 px-3 py-2 rounded-full mb-5 transition-all hover:scale-105"
+                  style={{
+                    background: 'var(--bg-tertiary)',
+                    border: '1px solid var(--border-subtle)',
+                  }}
                 >
-                  <svg className="w-7 h-7" style={{ color: 'var(--accent-primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
+                    style={{ background: 'white' }}
+                  >
+                    <Image
+                      src="/IIT_Hyderabad_logo.png"
+                      alt="IIT Hyderabad"
+                      width={28}
+                      height={28}
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                  <span className="text-sm font-semibold pr-1" style={{ color: 'var(--text-primary)' }}>
+                    IIT Hyderabad Research
+                  </span>
+                </div>
+              </div>
+
+              {/* Headline */}
+              <h1
+                className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-5 animate-fade-up stagger-1"
+                style={{ color: 'var(--text-primary)', lineHeight: '1.1', opacity: 0, animationFillMode: 'forwards' }}
+              >
+                Flood Analytics for{' '}
+                <span className="text-gradient">Urban Resilience</span>
+              </h1>
+
+              {/* Subheadline */}
+              <p
+                className="text-lg lg:text-xl mb-7 max-w-lg animate-fade-up stagger-2 font-medium leading-relaxed"
+                style={{ color: 'var(--text-secondary)', opacity: 0, animationFillMode: 'forwards' }}
+              >
+                India&apos;s first comprehensive city-level flood database with two decades of documented events.
+              </p>
+
+              {/* CTA Buttons */}
+              <div
+                className="flex flex-col sm:flex-row items-start gap-3 animate-fade-up stagger-3"
+                style={{ opacity: 0, animationFillMode: 'forwards' }}
+              >
+                <Link
+                  href="/dashboard"
+                  className="btn btn-primary text-base px-7 py-3.5 group"
+                >
+                  <span className="font-bold flex items-center gap-2">
+                    Explore Dashboard
+                    <svg
+                      className="w-5 h-5 transition-transform group-hover:translate-x-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </span>
+                </Link>
+                <Link
+                  href="/map"
+                  className="btn btn-secondary text-base px-7 py-3.5 font-bold group"
+                >
+                  <svg
+                    className="w-5 h-5 transition-transform group-hover:scale-110"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                  View Map
+                </Link>
+              </div>
+
+              {/* Live Status */}
+              <div
+                className="mt-6 animate-fade-up stagger-4"
+                style={{ opacity: 0, animationFillMode: 'forwards' }}
+              >
+                <div className="inline-flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span
+                      className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                      style={{ background: 'var(--success)' }}
+                    />
+                    <span
+                      className="relative inline-flex rounded-full h-2 w-2"
+                      style={{ background: 'var(--success)' }}
+                    />
+                  </span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                    Currently tracking <span style={{ color: 'var(--accent-primary)' }}>Hyderabad, India</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Content - 5 columns with 4 info cards */}
+            <div className="lg:col-span-5 hidden lg:block">
+              <div
+                className="relative animate-fade-up stagger-2"
+                style={{ opacity: 0, animationFillMode: 'forwards' }}
+              >
+                {/* Main container box */}
+                <div
+                  className="relative rounded-3xl p-5 overflow-hidden"
+                  style={{
+                    background: 'var(--bg-tertiary)',
+                    border: '1px solid var(--border-subtle)',
+                    boxShadow: 'var(--shadow-xl)',
+                  }}
+                >
+                  {/* Animated gradient background */}
+                  <div
+                    className="absolute inset-0 opacity-30"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(6, 182, 212, 0.1) 100%)',
+                    }}
+                  />
+
+                  {/* 2x2 Grid - Core Features */}
+                  <div className="relative grid grid-cols-2 gap-3">
+                    {/* Card 1 - Database */}
+                    <div
+                      className="group relative p-4 rounded-2xl transition-all duration-300 cursor-default overflow-hidden"
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-subtle)',
+                        transformStyle: 'preserve-3d',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px) rotateX(5deg) rotateY(-5deg)';
+                        e.currentTarget.style.boxShadow = '0 20px 40px rgba(59, 130, 246, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%)' }} />
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110"
+                        style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }}
+                      >
+                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                        </svg>
+                      </div>
+                      <h4 className="font-bold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>Database</h4>
+                      <p className="text-xs font-medium leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>
+                        1000+ flood events
+                      </p>
+                    </div>
+
+                    {/* Card 2 - Analytics */}
+                    <div
+                      className="group relative p-4 rounded-2xl transition-all duration-300 cursor-default overflow-hidden"
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-subtle)',
+                        transformStyle: 'preserve-3d',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px) rotateX(5deg) rotateY(5deg)';
+                        e.currentTarget.style.boxShadow = '0 20px 40px rgba(139, 92, 246, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, transparent 100%)' }} />
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110"
+                        style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)' }}
+                      >
+                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                      <h4 className="font-bold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>Analytics</h4>
+                      <p className="text-xs font-medium leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>
+                        Custom visualizations
+                      </p>
+                    </div>
+
+                    {/* Card 3 - Mapping */}
+                    <div
+                      className="group relative p-4 rounded-2xl transition-all duration-300 cursor-default overflow-hidden"
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-subtle)',
+                        transformStyle: 'preserve-3d',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px) rotateX(-5deg) rotateY(-5deg)';
+                        e.currentTarget.style.boxShadow = '0 20px 40px rgba(6, 182, 212, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, transparent 100%)' }} />
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110"
+                        style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)' }}
+                      >
+                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                      </div>
+                      <h4 className="font-bold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>Mapping</h4>
+                      <p className="text-xs font-medium leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>
+                        Interactive heatmaps
+                      </p>
+                    </div>
+
+                    {/* Card 4 - Filtering */}
+                    <div
+                      className="group relative p-4 rounded-2xl transition-all duration-300 cursor-default overflow-hidden"
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-subtle)',
+                        transformStyle: 'preserve-3d',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px) rotateX(-5deg) rotateY(5deg)';
+                        e.currentTarget.style.boxShadow = '0 20px 40px rgba(16, 185, 129, 0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%)' }} />
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110"
+                        style={{ background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)' }}
+                      >
+                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                      </div>
+                      <h4 className="font-bold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>Filtering</h4>
+                      <p className="text-xs font-medium leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>
+                        Advanced search
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating animated icons */}
+                <div
+                  className="absolute -top-3 -right-3 p-3 rounded-xl animate-float-slow z-10"
+                  style={{
+                    background: 'var(--accent-gradient)',
+                    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)',
+                  }}
+                >
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <p className="text-4xl font-display font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
-                  {stats?.totalEvents.toLocaleString() || '—'}
-                </p>
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Flood Events</p>
-              </div>
 
-              {/* People Affected */}
-              <div className="card p-6 text-center hover:border-[var(--border-accent)] transition-all">
                 <div
-                  className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: 'rgba(239, 68, 68, 0.1)' }}
+                  className="absolute -bottom-2 -left-2 p-3 rounded-xl animate-float z-10"
+                  style={{
+                    background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                    boxShadow: '0 10px 30px rgba(6, 182, 212, 0.3)',
+                    animationDelay: '1s',
+                  }}
                 >
-                  <svg className="w-7 h-7" style={{ color: 'var(--danger)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <p className="text-4xl font-display font-bold mb-1" style={{ color: 'var(--danger)' }}>
-                  {stats?.totalAffected.toLocaleString() || '—'}
-                </p>
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>People Affected</p>
-              </div>
-
-              {/* Average Rainfall */}
-              <div className="card p-6 text-center hover:border-[var(--border-accent)] transition-all">
-                <div
-                  className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: 'rgba(6, 182, 212, 0.1)' }}
-                >
-                  <svg className="w-7 h-7" style={{ color: 'var(--accent-secondary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                  </svg>
-                </div>
-                <p className="text-4xl font-display font-bold mb-1" style={{ color: 'var(--accent-secondary)' }}>
-                  {stats?.avgRainfall || '—'}<span className="text-lg font-normal">mm</span>
-                </p>
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Avg Rainfall</p>
-              </div>
-
-              {/* Years of Data */}
-              <div className="card p-6 text-center hover:border-[var(--border-accent)] transition-all">
-                <div
-                  className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: 'rgba(20, 184, 166, 0.1)' }}
-                >
-                  <svg className="w-7 h-7" style={{ color: 'var(--accent-tertiary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <p className="text-4xl font-display font-bold mb-1" style={{ color: 'var(--accent-tertiary)' }}>
-                  22<span className="text-lg font-normal">+</span>
-                </p>
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>Years of Data</p>
-              </div>
-            </div>
-          )}
-
-          {/* Flood Types & Locations */}
-          {stats && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-              {/* Flood Types */}
-              <div className="card p-6">
-                <h3 className="font-display font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                  <svg className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
-                  Flood Types Distribution
-                </h3>
-                <div className="space-y-3">
-                  {stats.floodTypes.slice(0, 5).map((item, idx) => {
-                    const maxCount = stats.floodTypes[0]?.count || 1;
-                    const colors = ['#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e'];
-                    return (
-                      <div key={item.type}>
-                        <div className="flex items-center justify-between text-sm mb-1">
-                          <span style={{ color: 'var(--text-secondary)' }}>{item.type}</span>
-                          <span className="font-mono font-medium" style={{ color: 'var(--text-primary)' }}>{item.count}</span>
-                        </div>
-                        <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-tertiary)' }}>
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{
-                              width: `${(item.count / maxCount) * 100}%`,
-                              background: colors[idx],
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Top Locations */}
-              <div className="card p-6">
-                <h3 className="font-display font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                  <svg className="w-5 h-5" style={{ color: 'var(--warning)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  Top Affected Areas
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {stats.topLocations.slice(0, 8).map((item, idx) => (
-                    <div
-                      key={item.location}
-                      className="flex items-center gap-2 p-2 rounded-lg"
-                      style={{ background: 'var(--bg-tertiary)' }}
-                    >
-                      <span
-                        className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                        style={{ background: idx < 3 ? 'var(--warning)' : 'var(--text-tertiary)' }}
-                      >
-                        {idx + 1}
-                      </span>
-                      <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{item.location}</span>
-                      <span className="text-xs font-mono ml-auto" style={{ color: 'var(--text-tertiary)' }}>{item.count}</span>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-display font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+      {/* Platform Features Section */}
+      <section className="py-16 lg:py-20" style={{ background: 'var(--bg-primary)' }}>
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <p
+              className="text-sm font-bold uppercase tracking-widest mb-3"
+              style={{ color: 'var(--accent-primary)' }}
+            >
               Platform Features
+            </p>
+            <h2
+              className="text-3xl lg:text-4xl font-display font-bold mb-4"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Tools for Comprehensive Analysis
             </h2>
-            <p style={{ color: 'var(--text-secondary)' }}>
-              Tools for comprehensive flood data analysis and visualization
+            <p className="text-base font-medium" style={{ color: 'var(--text-secondary)' }}>
+              Purpose-built for researchers, urban planners, and disaster management professionals
             </p>
           </div>
 
+          {/* Features Grid - 6 features */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Feature 1 */}
-            <div className="card p-6 hover:border-[var(--border-accent)] transition-all group">
+            {[
+              {
+                title: 'Event Database',
+                description: 'Browse thousands of documented flood events with dates, locations, rainfall measurements, and damage assessments.',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />,
+                gradient: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
+              },
+              {
+                title: 'Smart Filtering',
+                description: 'Filter events by date range, location, flood type, rainfall intensity, and number of people affected.',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />,
+                gradient: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+              },
+              {
+                title: 'Custom Charts',
+                description: 'Build custom visualizations with our plot builder. Create bar charts, line graphs, and analyze trends over time.',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
+                gradient: 'linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)',
+              },
+              {
+                title: 'Interactive Map',
+                description: 'Explore flood events spatially with markers and heatmaps. Zoom, pan, and click for detailed information.',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />,
+                gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+              },
+              {
+                title: 'Export & Share',
+                description: 'Export charts as high-quality PNG images for use in reports, presentations, and publications.',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />,
+                gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+              },
+              {
+                title: 'Timeline Analysis',
+                description: 'Animate through years to see how flood patterns have changed. Identify seasonal and long-term trends.',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />,
+                gradient: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)',
+              },
+            ].map((feature) => (
               <div
-                className="w-12 h-12 rounded-xl mb-4 flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%)' }}
+                key={feature.title}
+                className="card card-hover p-6 transition-all duration-300 group"
               >
-                <svg className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110"
+                  style={{ background: feature.gradient }}
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    {feature.icon}
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  {feature.title}
+                </h3>
+                <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="font-display font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                Detailed Event Data
-              </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Access comprehensive information including dates, locations, rainfall measurements, damage descriptions, and verified coordinates.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="card p-6 hover:border-[var(--border-accent)] transition-all group">
-              <div
-                className="w-12 h-12 rounded-xl mb-4 flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ background: 'rgba(20, 184, 166, 0.1)' }}
-              >
-                <svg className="w-6 h-6" style={{ color: 'var(--accent-tertiary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-              </div>
-              <h3 className="font-display font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                Advanced Filtering
-              </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Filter events by date range, location, flood type, rainfall amount, and impact severity to find exactly what you need.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="card p-6 hover:border-[var(--border-accent)] transition-all group">
-              <div
-                className="w-12 h-12 rounded-xl mb-4 flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ background: 'rgba(245, 158, 11, 0.1)' }}
-              >
-                <svg className="w-6 h-6" style={{ color: 'var(--warning)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
-              </div>
-              <h3 className="font-display font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                Verified Sources
-              </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Each event is linked to original news sources for verification. Data extracted from 13+ major news outlets.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="card p-6 hover:border-[var(--border-accent)] transition-all group">
-              <div
-                className="w-12 h-12 rounded-xl mb-4 flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ background: 'rgba(239, 68, 68, 0.1)' }}
-              >
-                <svg className="w-6 h-6" style={{ color: 'var(--danger)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h3 className="font-display font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                Geocoded Locations
-              </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Events include validated coordinates and Digipin codes for precise location mapping and spatial analysis.
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="card p-6 hover:border-[var(--border-accent)] transition-all group">
-              <div
-                className="w-12 h-12 rounded-xl mb-4 flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ background: 'rgba(16, 185, 129, 0.1)' }}
-              >
-                <svg className="w-6 h-6" style={{ color: 'var(--success)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </div>
-              <h3 className="font-display font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                Regular Updates
-              </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Database is continuously updated with new events as they occur. New data added 2-3 times per week.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="card p-6 hover:border-[var(--border-accent)] transition-all group">
-              <div
-                className="w-12 h-12 rounded-xl mb-4 flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ background: 'rgba(139, 92, 246, 0.1)' }}
-              >
-                <svg className="w-6 h-6" style={{ color: '#8b5cf6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="font-display font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                Expandable Coverage
-              </h3>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                Built for scale. Platform architecture supports adding more cities across India and globally.
-              </p>
-            </div>
+            ))}
           </div>
 
           {/* CTA */}
           <div className="text-center mt-12">
-            <Link href="/dashboard" className="btn btn-primary text-base px-8 py-3">
-              Start Exploring Data
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <Link href="/dashboard" className="btn btn-primary text-base px-8 py-4 group">
+              <span className="font-bold">Start Exploring</span>
+              <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </Link>
@@ -386,64 +438,51 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-primary)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Brand */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
+      {/* Footer - Minimal */}
+      <footer style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-subtle)' }}>
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Brand & IIT */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  className="w-9 h-9 rounded-lg flex items-center justify-center"
                   style={{ background: 'var(--accent-gradient)' }}
                 >
-                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div>
-                  <p className="font-display font-bold" style={{ color: 'var(--text-primary)' }}>FloodLens</p>
-                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Global Flood Analytics</p>
+                <span className="font-display text-lg font-bold" style={{ color: 'var(--text-primary)' }}>FloodLens</span>
+              </div>
+
+              <div className="h-6 w-px" style={{ background: 'var(--border-subtle)' }} />
+
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden" style={{ background: 'white' }}>
+                  <Image src="/IIT_Hyderabad_logo.png" alt="IIT Hyderabad" width={28} height={28} className="object-contain" />
                 </div>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>IIT Hyderabad</span>
               </div>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                India&apos;s first comprehensive city-level flood database for urban resilience and disaster management.
-              </p>
             </div>
 
-            {/* Quick Links */}
-            <div>
-              <h4 className="font-display font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Quick Links</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/dashboard" className="text-sm hover:underline" style={{ color: 'var(--text-secondary)' }}>
-                    Dashboard
-                  </Link>
-                </li>
-                <li>
-                  <a href="#stats" className="text-sm hover:underline" style={{ color: 'var(--text-secondary)' }}>
-                    Statistics
-                  </a>
-                </li>
-              </ul>
+            {/* Navigation */}
+            <div className="flex items-center gap-6">
+              {[{ href: '/dashboard', label: 'Dashboard' }, { href: '/analytics', label: 'Analytics' }, { href: '/map', label: 'Map' }].map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium transition-colors hover:text-[var(--accent-primary)]"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
 
-            {/* Current Coverage */}
-            <div>
-              <h4 className="font-display font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Current Coverage</h4>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full" style={{ background: 'var(--success)' }} />
-                <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Hyderabad, India</span>
-              </div>
-              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                More cities coming soon
-              </p>
-            </div>
-          </div>
-
-          <div className="border-t mt-8 pt-8 text-center" style={{ borderColor: 'var(--border-primary)' }}>
+            {/* Copyright */}
             <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
-              &copy; {new Date().getFullYear()} FloodLens. Built for urban resilience.
+              &copy; {new Date().getFullYear()} FloodLens
             </p>
           </div>
         </div>

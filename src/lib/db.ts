@@ -57,7 +57,7 @@ export interface DatabaseStats {
 export function getEvents(filters: EventFilters = {}): FloodEvent[] {
   const db = getDatabase();
 
-  let query = 'SELECT * FROM event_attributes WHERE 1=1';
+  let query = 'SELECT * FROM event_attributes WHERE event_date >= \'2000-01-01\'';
   const params: Record<string, unknown> = {};
 
   if (filters.startDate) {
@@ -105,29 +105,29 @@ export function getEvents(filters: EventFilters = {}): FloodEvent[] {
 export function getStats(): DatabaseStats {
   const db = getDatabase();
 
-  const totalEvents = db.prepare('SELECT COUNT(*) as count FROM event_attributes').get() as { count: number };
+  const totalEvents = db.prepare('SELECT COUNT(*) as count FROM event_attributes WHERE event_date >= \'2000-01-01\'').get() as { count: number };
 
-  const totalAffected = db.prepare('SELECT SUM(total_affected) as sum FROM event_attributes').get() as { sum: number | null };
+  const totalAffected = db.prepare('SELECT SUM(total_affected) as sum FROM event_attributes WHERE event_date >= \'2000-01-01\'').get() as { sum: number | null };
 
-  const avgRainfall = db.prepare('SELECT AVG(rainfall_mm) as avg FROM event_attributes WHERE rainfall_mm IS NOT NULL').get() as { avg: number | null };
+  const avgRainfall = db.prepare('SELECT AVG(rainfall_mm) as avg FROM event_attributes WHERE rainfall_mm IS NOT NULL AND event_date >= \'2000-01-01\'').get() as { avg: number | null };
 
   const dateRange = db.prepare(`
     SELECT MIN(event_date) as earliest, MAX(event_date) as latest
     FROM event_attributes
-    WHERE event_date IS NOT NULL AND event_date != 'UNAVAILABLE'
+    WHERE event_date IS NOT NULL AND event_date != 'UNAVAILABLE' AND event_date >= '2000-01-01'
   `).get() as { earliest: string; latest: string };
 
   const floodTypes = db.prepare(`
     SELECT flood_type as type, COUNT(*) as count
     FROM event_attributes
-    WHERE flood_type IS NOT NULL AND flood_type != ''
+    WHERE flood_type IS NOT NULL AND flood_type != '' AND event_date >= '2000-01-01'
     GROUP BY flood_type
     ORDER BY count DESC
   `).all() as { type: string; count: number }[];
 
   // Get top locations by splitting comma-separated values
   const allLocations = db.prepare(`
-    SELECT location FROM event_attributes WHERE location IS NOT NULL
+    SELECT location FROM event_attributes WHERE location IS NOT NULL AND event_date >= '2000-01-01'
   `).all() as { location: string }[];
 
   const locationCounts: Record<string, number> = {};
@@ -170,7 +170,7 @@ export function getFloodTypes(): string[] {
   const result = db.prepare(`
     SELECT DISTINCT flood_type
     FROM event_attributes
-    WHERE flood_type IS NOT NULL AND flood_type != ''
+    WHERE flood_type IS NOT NULL AND flood_type != '' AND event_date >= '2000-01-01'
     ORDER BY flood_type
   `).all() as { flood_type: string }[];
   return result.map(r => r.flood_type);
@@ -180,7 +180,7 @@ export function getFloodTypes(): string[] {
 export function getUniqueLocations(): string[] {
   const db = getDatabase();
   const allLocations = db.prepare(`
-    SELECT DISTINCT location FROM event_attributes WHERE location IS NOT NULL
+    SELECT DISTINCT location FROM event_attributes WHERE location IS NOT NULL AND event_date >= '2000-01-01'
   `).all() as { location: string }[];
 
   const uniqueLocations = new Set<string>();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import { FloodEvent, SortField, SortDirection } from '@/types/event';
 
 interface DataTableProps {
@@ -15,26 +15,20 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const pageSize = 15;
+  const [pageSize, setPageSize] = useState(10);
 
-  // Sort events
   const sortedEvents = useMemo(() => {
     return [...events].sort((a, b) => {
       let aVal = a[sortField as keyof FloodEvent];
       let bVal = b[sortField as keyof FloodEvent];
 
-      // Handle null values
       if (aVal === null || aVal === undefined) aVal = sortDirection === 'asc' ? Infinity : -Infinity;
       if (bVal === null || bVal === undefined) bVal = sortDirection === 'asc' ? Infinity : -Infinity;
 
-      // Handle string comparison
       if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortDirection === 'asc'
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal);
+        return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
       }
 
-      // Handle number comparison
       if (sortDirection === 'asc') {
         return (aVal as number) - (bVal as number);
       }
@@ -42,13 +36,12 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
     });
   }, [events, sortField, sortDirection]);
 
-  // Paginate
   const paginatedEvents = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return sortedEvents.slice(start, start + pageSize);
-  }, [sortedEvents, currentPage]);
+  }, [sortedEvents, currentPage, pageSize]);
 
-  const totalPages = Math.ceil(events.length / pageSize);
+  const totalPages = useMemo(() => Math.ceil(events.length / pageSize), [events.length, pageSize]);
 
   const handleSort = (field: ExtendedSortField) => {
     if (field === sortField) {
@@ -63,13 +56,13 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
   const SortIcon = ({ field }: { field: ExtendedSortField }) => {
     if (sortField !== field) {
       return (
-        <svg className="w-3.5 h-3.5 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className="w-3 h-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
         </svg>
       );
     }
     return (
-      <svg className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg className="w-3 h-3" style={{ color: 'var(--accent-primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         {sortDirection === 'asc' ? (
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
         ) : (
@@ -82,11 +75,7 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
   const formatDate = (dateStr: string | null) => {
     if (!dateStr || dateStr === 'UNAVAILABLE') return '—';
     try {
-      return new Date(dateStr).toLocaleDateString('en-IN', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
+      return new Date(dateStr).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
     } catch {
       return dateStr;
     }
@@ -95,13 +84,6 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
   const truncateText = (text: string | null, maxLength: number) => {
     if (!text) return '—';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-  };
-
-  const getSeverityBadge = (affected: number) => {
-    if (affected === 0) return 'badge-neutral';
-    if (affected < 10) return 'badge-warning';
-    if (affected < 50) return 'badge-warning';
-    return 'badge-danger';
   };
 
   const getValidationBadge = (validated: number) => {
@@ -113,101 +95,83 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
   };
 
   return (
-    <div className="space-y-4 animate-slide-up">
-      {/* Table Header Info */}
+    <div className="space-y-4">
+      {/* Table Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(20, 184, 166, 0.1) 100%)' }}
-          >
-            <svg className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--accent-muted)' }}>
+            <svg className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
           </div>
           <div>
-            <h3 className="font-display font-semibold" style={{ color: 'var(--text-primary)' }}>
-              Flood Events
+            <h3 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+              Event Records
             </h3>
-            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-              Click any row to view full details
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              Click row to expand details
             </p>
           </div>
         </div>
-        <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          <span className="font-mono font-medium" style={{ color: 'var(--accent-primary)' }}>{events.length}</span> events found
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Show:</label>
+            <select
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+              className="py-1.5 px-3 rounded-lg text-xs font-medium"
+              style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+          <div className="px-3 py-1.5 rounded-full" style={{ background: 'var(--accent-muted)' }}>
+            <span className="text-xs font-medium" style={{ color: 'var(--accent-primary)' }}>
+              {events.length} total
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Table Container */}
+      {/* Table */}
       <div className="table-container" style={{ maxHeight: '600px', overflowY: 'auto' }}>
         <table className="data-table">
           <thead>
             <tr>
-              <th className="w-10"></th>
-              <th
-                className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors"
-                onClick={() => handleSort('event_date')}
-              >
-                <div className="flex items-center gap-2">
-                  Event Date
-                  <SortIcon field="event_date" />
-                </div>
+              <th style={{ width: '40px' }}></th>
+              <th style={{ width: '50px' }}>#</th>
+              <th className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors" onClick={() => handleSort('event_date')}>
+                <div className="flex items-center gap-1.5">Date <SortIcon field="event_date" /></div>
               </th>
-              <th
-                className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors"
-                onClick={() => handleSort('location')}
-              >
-                <div className="flex items-center gap-2">
-                  Location
-                  <SortIcon field="location" />
-                </div>
+              <th className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors" onClick={() => handleSort('location')}>
+                <div className="flex items-center gap-1.5">Location <SortIcon field="location" /></div>
               </th>
-              <th
-                className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors"
-                onClick={() => handleSort('rainfall_mm')}
-              >
-                <div className="flex items-center gap-2">
-                  Rainfall
-                  <SortIcon field="rainfall_mm" />
-                </div>
+              <th className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors" onClick={() => handleSort('rainfall_mm')}>
+                <div className="flex items-center gap-1.5">Rainfall <SortIcon field="rainfall_mm" /></div>
               </th>
-              <th
-                className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors"
-                onClick={() => handleSort('total_affected')}
-              >
-                <div className="flex items-center gap-2">
-                  Affected
-                  <SortIcon field="total_affected" />
-                </div>
+              <th className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors" onClick={() => handleSort('flood_type')}>
+                <div className="flex items-center gap-1.5">Type <SortIcon field="flood_type" /></div>
               </th>
-              <th
-                className="cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors"
-                onClick={() => handleSort('flood_type')}
-              >
-                <div className="flex items-center gap-2">
-                  Type
-                  <SortIcon field="flood_type" />
-                </div>
-              </th>
-              <th>Coordinates</th>
-              <th>Validated</th>
-              <th className="w-10">View</th>
+              <th>Cause</th>
+              <th>Status</th>
+              <th style={{ width: '50px' }}></th>
             </tr>
           </thead>
           <tbody>
-            {paginatedEvents.map((event) => (
-              <>
+            {paginatedEvents.map((event, index) => (
+              <Fragment key={event.event_id}>
                 <tr
-                  key={event.event_id}
-                  className="cursor-pointer group"
+                  className="cursor-pointer group transition-colors"
                   onClick={() => toggleRowExpand(event.event_id)}
+                  style={{ background: expandedRow === event.event_id ? 'var(--bg-tertiary)' : 'transparent' }}
                 >
-                  {/* Expand Icon */}
-                  <td className="w-10">
+                  <td style={{ width: '40px' }}>
                     <svg
                       className={`w-4 h-4 transition-transform duration-200 ${expandedRow === event.event_id ? 'rotate-90' : ''}`}
-                      style={{ color: 'var(--text-tertiary)' }}
+                      style={{ color: 'var(--text-muted)' }}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -216,82 +180,48 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </td>
-
-                  {/* Event Date */}
+                  <td className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {(currentPage - 1) * pageSize + index + 1}
+                  </td>
                   <td className="whitespace-nowrap">
-                    <div className="flex flex-col">
-                      <span className="font-medium">{formatDate(event.event_date)}</span>
-                      {event.reported_date && event.reported_date !== event.event_date && (
-                        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                          Reported: {formatDate(event.reported_date)}
-                        </span>
-                      )}
-                    </div>
+                    <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{formatDate(event.event_date)}</span>
                   </td>
-
-                  {/* Location */}
-                  <td className="max-w-[200px]">
-                    <span title={event.location || undefined} className="truncate-2">
-                      {truncateText(event.location, 40)}
-                    </span>
+                  <td style={{ maxWidth: '200px' }}>
+                    <span className="truncate block text-sm" title={event.location || undefined}>{truncateText(event.location, 30)}</span>
                   </td>
-
-                  {/* Rainfall */}
                   <td className="whitespace-nowrap">
                     {event.rainfall_mm !== null ? (
-                      <span className="font-mono font-medium" style={{ color: 'var(--accent-secondary)' }}>
-                        {event.rainfall_mm} <span className="text-xs font-normal" style={{ color: 'var(--text-tertiary)' }}>mm</span>
+                      <span className="font-mono font-medium" style={{ color: 'var(--accent-primary)' }}>
+                        {event.rainfall_mm}<span className="text-xs ml-0.5" style={{ color: 'var(--text-muted)' }}>mm</span>
                       </span>
                     ) : (
-                      <span style={{ color: 'var(--text-tertiary)' }}>—</span>
+                      <span style={{ color: 'var(--text-muted)' }}>—</span>
                     )}
                   </td>
-
-                  {/* Affected */}
-                  <td className="whitespace-nowrap">
-                    <span className={`badge ${getSeverityBadge(event.total_affected)}`}>
-                      {event.total_affected}
+                  <td>
+                    {event.flood_type ? (
+                      <span className="badge badge-primary">{truncateText(event.flood_type, 15)}</span>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)' }}>—</span>
+                    )}
+                  </td>
+                  <td style={{ maxWidth: '180px' }}>
+                    <span className="text-sm truncate block" title={event.trigger_cause || undefined}>
+                      {truncateText(event.trigger_cause, 30)}
                     </span>
                   </td>
-
-                  {/* Flood Type */}
-                  <td className="whitespace-nowrap">
-                    {event.flood_type ? (
-                      <span className="badge badge-primary text-xs">
-                        {truncateText(event.flood_type, 20)}
-                      </span>
-                    ) : (
-                      <span style={{ color: 'var(--text-tertiary)' }}>—</span>
-                    )}
-                  </td>
-
-                  {/* Coordinates */}
-                  <td className="whitespace-nowrap font-mono text-xs">
-                    {event.latitude && event.longitude ? (
-                      <span style={{ color: 'var(--text-secondary)' }}>
-                        {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
-                      </span>
-                    ) : (
-                      <span style={{ color: 'var(--text-tertiary)' }}>—</span>
-                    )}
-                  </td>
-
-                  {/* Validated */}
-                  <td className="whitespace-nowrap">
+                  <td>
                     <span className={`badge ${getValidationBadge(event.location_validated)}`}>
                       {event.location_validated ? 'Verified' : 'Approx'}
                     </span>
                   </td>
-
-                  {/* View Details Button */}
                   <td>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEventClick?.(event);
-                      }}
-                      className="p-2 rounded-lg transition-colors hover:bg-[var(--accent-primary)] hover:text-white"
-                      style={{ color: 'var(--text-tertiary)' }}
+                      onClick={(e) => { e.stopPropagation(); onEventClick?.(event); }}
+                      className="p-2 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                      style={{ color: 'var(--text-muted)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent-muted)'; e.currentTarget.style.color = 'var(--accent-primary)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                       title="View full details"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -302,111 +232,106 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
                   </td>
                 </tr>
 
-                {/* Expanded Row Details */}
+                {/* Expanded Details */}
                 {expandedRow === event.event_id && (
-                  <tr key={`${event.event_id}-expanded`}>
+                  <tr>
                     <td colSpan={9} style={{ background: 'var(--bg-tertiary)', padding: 0 }}>
-                      <div className="p-4 animate-slide-down">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {/* Trigger Cause */}
-                          {event.trigger_cause && (
-                            <div className="space-y-1">
-                              <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
-                                Cause
-                              </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                                {event.trigger_cause}
-                              </p>
-                            </div>
-                          )}
+                      <div className="p-6 animate-fade-in">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                          {/* Affected */}
+                          <div className="p-4 rounded-xl" style={{ background: 'var(--bg-secondary)' }}>
+                            <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                              People Affected
+                            </p>
+                            <p className="stat-number text-3xl" style={{ color: event.total_affected > 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
+                              {event.total_affected.toLocaleString()}
+                            </p>
+                          </div>
 
-                          {/* Damage Description */}
-                          {event.damage_description && (
-                            <div className="space-y-1 md:col-span-2">
-                              <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
-                                Impact & Damage
+                          {/* Coordinates */}
+                          {event.latitude && event.longitude && (
+                            <div className="p-4 rounded-xl" style={{ background: 'var(--bg-secondary)' }}>
+                              <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                                Coordinates
                               </p>
-                              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                                {event.damage_description}
+                              <p className="font-mono text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {event.latitude.toFixed(4)}, {event.longitude.toFixed(4)}
                               </p>
                             </div>
                           )}
 
                           {/* Digipin */}
                           {event.digipin && (
-                            <div className="space-y-1">
-                              <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
+                            <div className="p-4 rounded-xl" style={{ background: 'var(--bg-secondary)' }}>
+                              <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
                                 Digipin Code
                               </p>
-                              <p className="text-sm font-mono" style={{ color: 'var(--accent-primary)' }}>
+                              <p className="font-mono text-sm" style={{ color: 'var(--accent-primary)' }}>
                                 {event.digipin}
                               </p>
                             </div>
                           )}
 
                           {/* Last Updated */}
-                          <div className="space-y-1">
-                            <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
+                          <div className="p-4 rounded-xl" style={{ background: 'var(--bg-secondary)' }}>
+                            <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
                               Last Updated
                             </p>
                             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                               {formatDate(event.last_updated)}
                             </p>
                           </div>
+                        </div>
 
-                          {/* Source URLs */}
-                          {event.source_urls && (
-                            <div className="space-y-1 lg:col-span-2">
-                              <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
-                                Sources ({event.source_urls.split(';').filter(Boolean).length})
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {event.source_urls.split(';').filter(Boolean).slice(0, 3).map((url, idx) => (
-                                  <a
-                                    key={idx}
-                                    href={url.trim()}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="badge badge-primary hover:opacity-80 transition-opacity"
-                                  >
-                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                    Source {idx + 1}
-                                  </a>
-                                ))}
-                                {event.source_urls.split(';').filter(Boolean).length > 3 && (
-                                  <span className="badge badge-neutral">
-                                    +{event.source_urls.split(';').filter(Boolean).length - 3} more
-                                  </span>
-                                )}
-                              </div>
+                        {/* Damage Description */}
+                        {event.damage_description && (
+                          <div className="mt-4 p-4 rounded-xl" style={{ background: 'var(--bg-secondary)' }}>
+                            <p className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+                              Impact & Damage
+                            </p>
+                            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                              {event.damage_description}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Sources */}
+                        {event.source_urls && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <div className="flex flex-wrap gap-2">
+                              {event.source_urls.split(';').filter(Boolean).slice(0, 4).map((url, idx) => (
+                                <a
+                                  key={idx}
+                                  href={url.trim()}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="badge badge-primary transition-all duration-200 hover:scale-105"
+                                >
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                  Source {idx + 1}
+                                </a>
+                              ))}
                             </div>
-                          )}
-                        </div>
-
-                        {/* View Full Details Button */}
-                        <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-primary)' }}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEventClick?.(event);
-                            }}
-                            className="btn btn-primary text-sm"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            View Full Details
-                          </button>
-                        </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onEventClick?.(event); }}
+                              className="btn btn-primary text-sm"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              Full Details
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -414,16 +339,16 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
 
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-        <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
           Showing <span className="font-mono font-medium" style={{ color: 'var(--text-primary)' }}>{(currentPage - 1) * pageSize + 1}</span> to{' '}
           <span className="font-mono font-medium" style={{ color: 'var(--text-primary)' }}>{Math.min(currentPage * pageSize, events.length)}</span> of{' '}
-          <span className="font-mono font-medium" style={{ color: 'var(--text-primary)' }}>{events.length}</span> events
-        </div>
+          <span className="font-mono font-medium" style={{ color: 'var(--text-primary)' }}>{events.length}</span>
+        </p>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setCurrentPage(1)}
             disabled={currentPage === 1}
-            className="btn btn-ghost p-2 disabled:opacity-40"
+            className="btn btn-ghost p-2 disabled:opacity-30"
             title="First page"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -433,39 +358,29 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
           <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="btn btn-ghost p-2 disabled:opacity-40"
-            title="Previous page"
+            className="btn btn-ghost p-2 disabled:opacity-30"
+            title="Previous"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
-          {/* Page numbers */}
           <div className="flex items-center gap-1 mx-2">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum;
-              if (totalPages <= 5) {
-                pageNum = i + 1;
-              } else if (currentPage <= 3) {
-                pageNum = i + 1;
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-              } else {
-                pageNum = currentPage - 2 + i;
-              }
+              if (totalPages <= 5) pageNum = i + 1;
+              else if (currentPage <= 3) pageNum = i + 1;
+              else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+              else pageNum = currentPage - 2 + i;
               return (
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
-                    currentPage === pageNum
-                      ? 'text-white'
-                      : 'hover:bg-[var(--bg-tertiary)]'
-                  }`}
+                  className="w-9 h-9 rounded-lg text-sm font-medium transition-all duration-200"
                   style={{
                     background: currentPage === pageNum ? 'var(--accent-gradient)' : 'transparent',
-                    color: currentPage === pageNum ? 'white' : 'var(--text-secondary)',
+                    color: currentPage === pageNum ? 'white' : 'var(--text-tertiary)',
                   }}
                 >
                   {pageNum}
@@ -477,8 +392,8 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
           <button
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
-            className="btn btn-ghost p-2 disabled:opacity-40"
-            title="Next page"
+            className="btn btn-ghost p-2 disabled:opacity-30"
+            title="Next"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -487,7 +402,7 @@ export default function DataTable({ events, onEventClick }: DataTableProps) {
           <button
             onClick={() => setCurrentPage(totalPages)}
             disabled={currentPage === totalPages}
-            className="btn btn-ghost p-2 disabled:opacity-40"
+            className="btn btn-ghost p-2 disabled:opacity-30"
             title="Last page"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
